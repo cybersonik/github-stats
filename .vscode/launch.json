@@ -8,10 +8,13 @@
             ],
             "name": "Debug githubstats",
             "program": "${workspaceFolder:github-stats}/.build/debug/githubstats",
-            "args": [],
-            "env": {
-                "GITHUB_TOKEN": "${input:githubAuthToken}"
-            },
+            "args": [
+                "--organization",
+                "apple",
+                "--repo",
+                "swift.git"
+            ],
+            "envFile": "${workspaceFolder:github-stats}/.env",
             "cwd": "${workspaceFolder:github-stats}",
             "preLaunchTask": "swift: Build Debug githubstats"
         },
@@ -24,19 +27,8 @@
             "name": "Release githubstats",
             "program": "${workspaceFolder:github-stats}/.build/release/githubstats",
             "args": [],
-            "env": {
-                "GITHUB_TOKEN": "${input:githubAuthToken}"
-            },
             "cwd": "${workspaceFolder:github-stats}",
             "preLaunchTask": "swift: Build Release githubstats"
         }
-    ],
-	"inputs": [
-		{
-			"type": "promptString",
-			"id": "githubAuthToken",
-            "password": true,
-			"description": "Your GitHub Auth Token",
-		  }
-	]
+    ]
 }
