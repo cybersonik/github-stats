@@ -1,13 +1,13 @@
 import XCTest
 @testable import GitHubStatsCore
 
-final class GitHubStatsCore: XCTestCase {
+final class RepoTests: XCTestCase {
     func testRepoInitWithSshUrl() throws {
         // Arrange
         let gitHubSshUrl = "git@github.com:cybersonik/PhotoPicker.git"
         
         // Act
-        let repo = GitHubRepo(repoUrl: gitHubSshUrl)
+        let repo = Repo(repoUrl: gitHubSshUrl)
         
         // Assert
         XCTAssertNotNil(repo)
@@ -18,7 +18,7 @@ final class GitHubStatsCore: XCTestCase {
         let gitHubHttpUrl = "https://github.com/cybersonik/PhotoPicker.git"
         
         // Act
-        let repo = GitHubRepo(repoUrl: gitHubHttpUrl)
+        let repo = Repo(repoUrl: gitHubHttpUrl)
         
         // Assert
         XCTAssertNotNil(repo)
@@ -29,7 +29,7 @@ final class GitHubStatsCore: XCTestCase {
         let gitHubUrl = URL(string: "https://github.com/cybersonik/PhotoPicker.git")!
         
         // Act
-        let repo = GitHubRepo(url: gitHubUrl)
+        let repo = Repo(url: gitHubUrl)
         
         // Assert
         XCTAssertNotNil(repo)
