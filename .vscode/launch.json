@@ -1,0 +1,42 @@
+{
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "sourceLanguages": [
+                "swift"
+            ],
+            "name": "Debug githubstats",
+            "program": "${workspaceFolder:github-stats}/.build/debug/githubstats",
+            "args": [],
+            "env": {
+                "GITHUB_TOKEN": "${input:githubAuthToken}"
+            },
+            "cwd": "${workspaceFolder:github-stats}",
+            "preLaunchTask": "swift: Build Debug githubstats"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "sourceLanguages": [
+                "swift"
+            ],
+            "name": "Release githubstats",
+            "program": "${workspaceFolder:github-stats}/.build/release/githubstats",
+            "args": [],
+            "env": {
+                "GITHUB_TOKEN": "${input:githubAuthToken}"
+            },
+            "cwd": "${workspaceFolder:github-stats}",
+            "preLaunchTask": "swift: Build Release githubstats"
+        }
+    ],
+	"inputs": [
+		{
+			"type": "promptString",
+			"id": "githubAuthToken",
+            "password": true,
+			"description": "Your GitHub Auth Token",
+		  }
+	]
+}
