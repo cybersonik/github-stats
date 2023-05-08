@@ -4,11 +4,24 @@
 		{
 			"type": "swift",
 			"args": [
+				"package",
+				"resolve"
+			],
+            "cwd": "",
+			"problemMatcher": [
+				"$swiftc"
+			],
+			"label": "swift: Resolve package dependencies",
+			"detail": "swift package resolve"
+		},
+		{
+			"type": "swift",
+			"args": [
 				"build",
 				"--product",
 				"githubstats"
 			],
-			"cwd": "/Users/jesse/Developer/github-stats",
+            "cwd": "",
 			"problemMatcher": [
 				"$swiftc"
 			],
@@ -17,7 +30,10 @@
 				"isDefault": true
 			},
 			"label": "swift: Build Debug githubstats",
-			"detail": "swift build --product githubstats"
+			"detail": "swift build --product githubstats",
+			"dependsOn":[
+				"swift: Resolve package dependencies"
+			]
 		}
 	]
 }
