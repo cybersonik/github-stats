@@ -8,5 +8,5 @@
 import Foundation
 
 public enum Endpoints {
-    case pulls(state: PullRequest.State)
+    case pulls
 }

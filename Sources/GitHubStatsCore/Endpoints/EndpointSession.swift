@@ -17,10 +17,12 @@ public struct EndpointSession {
         self.endpointRequest = endpointRequest
     }
 
-    public func callEndpoint<T: GitHubObject>(maxResultCount: Int? = nil) async throws -> [T]? {
+    // TODO: replace RequestFilter<PullRequestFilter> with generic type
+    public func callEndpoint<T: GitHubObject>(filter: RequestFilter<T>) async throws -> [T]? {
         var results = Array<T>()
+        let maxResults = filter.maxResults
 
-        var url = endpointRequest.makeRequest(maxResultCount: maxResultCount)
+        var url = endpointRequest.makeRequest(maxResultCount: maxResults)
         var shouldContinue = false
 
         repeat {
@@ -46,15 +48,19 @@ public struct EndpointSession {
                     throw EndpointError.statusCodeNotOK
                 }
 
-                let pullRequestsPage: [T] = try JSONDecoder().decode([T].self, from: data)
+                let resultsPage: [T] = try JSONDecoder().decode([T].self, from: data)
+                if let filterFunction = filter.filterFunction {
+                    let filteredResults = resultsPage.filter(filterFunction)
+                    results.append(contentsOf: filteredResults)
+                } else {
+                    results.append(contentsOf: resultsPage)
+                }
 
-                results.append(contentsOf: pullRequestsPage)
-
-                if let maxResultCount, results.count >= maxResultCount {
-                    results.removeSubrange(maxResultCount...)
+                if results.count >= maxResults {
+                    results.removeSubrange(maxResults...)
                     shouldContinue = false
                 } else if let nextPageUrl = getNextPageUrl(from: httpResponse) {
-                    url = endpointRequest.makeNextRequest(with: nextPageUrl, maxResultCount: maxResultCount)
+                    url = endpointRequest.makeNextRequest(with: nextPageUrl, maxResultCount: maxResults)
                     shouldContinue = true
                 } else {
                     shouldContinue = false

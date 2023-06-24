@@ -9,5 +9,5 @@ import Foundation
 
 public struct User: GitHubObject {
     var id: Int
-    var login: String
+    public var login: String
 }

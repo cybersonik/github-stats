@@ -14,6 +14,8 @@ internal enum GitHubConstants {
 
     static let gitHubUrlRegex = #/^git@github\.com:(?<org>[\w\-\.]+)/(?<repo>[\w\-\.]+)$/#
 
+    static let defaultMaxResults = 100
+    
     static let nextPageLinkHeader = "link"
 
     // <https://api.github.com/repositories/44838949/pulls?state=closed&page=2>; rel="next", <https://api.github.com/repositories/44838949/pulls?state=closed&page=1599>; rel="last"

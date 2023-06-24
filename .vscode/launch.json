@@ -10,9 +10,14 @@
             "program": "${workspaceFolder:github-stats}/.build/debug/githubstats",
             "args": [
                 "--organization",
-                "apple",
+                "cybersonik",
                 "--repo",
-                "swift.git"
+                "PhotoPicker.git",
+                "get-prs",
+                "--state",
+                "closed",
+                "--author",
+                "jwesson"
             ],
             "envFile": "${workspaceFolder:github-stats}/.env",
             "cwd": "${workspaceFolder:github-stats}",
