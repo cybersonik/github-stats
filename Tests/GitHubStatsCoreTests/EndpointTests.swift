@@ -9,33 +9,68 @@ import XCTest
 @testable import GitHubStatsCore
 
 final class EndpointTests: XCTestCase {
-    private let organization = "apple"
-    private let repo = "swift.git"
+    private let organization = "cybersonik"
+    private let repo = "PhotoPicker.git"
 
     func testGetPullRequests() async throws {
         // Arrange
         let repo = Repo(organization: organization, name: repo)
 
         // Act
-        let pullRequestFilterFactory = PullRequestFilterFactory()
-        let filter = pullRequestFilterFactory.makeRequestFilter()
+        let filter = PullRequestFilterFactory.makeDefaultRequestFilter()
         let pullRequests = try await repo.getPullRequests(filter: filter)
 
         // Assert
         XCTAssertNotNil(pullRequests)
+        XCTAssertGreaterThan(pullRequests.count, 0)
     }
 
-    func testGetLimitedPullRequests() async throws {
+    func testGetPullRequestsLimitedToMaxResults() async throws {
         // Arrange
         let repo = Repo(organization: organization, name: repo)
 
         // Act
-        let pullRequestFilterFactory = PullRequestFilterFactory(maxResults: 10, state: .all)
+        let pullRequestFilterFactory = PullRequestFilterFactory(maxResults: 5, state: .all)
         let filter = pullRequestFilterFactory.makeRequestFilter()
         let pullRequests = try await repo.getPullRequests(filter: filter)
 
         // Assert
         XCTAssertNotNil(pullRequests)
-        XCTAssertLessThanOrEqual(pullRequests.count, 10)
+        XCTAssertGreaterThan(pullRequests.count, 0)
+        XCTAssertLessThanOrEqual(pullRequests.count, 5)
+    }
+
+    func testGetPullRequestsFilteredByClosed() async throws {
+        // Arrange
+        let repo = Repo(organization: organization, name: repo)
+
+        // Act
+        let pullRequestFilterFactory = PullRequestFilterFactory(maxResults: 10, state: .closed)
+        let filter = pullRequestFilterFactory.makeRequestFilter()
+        let pullRequests = try await repo.getPullRequests(filter: filter)
+
+        // Assert
+        XCTAssertNotNil(pullRequests)
+        XCTAssertGreaterThan(pullRequests.count, 0)
+        for pullRequest in pullRequests {
+            XCTAssertEqual(pullRequest.state, .closed)
+        }
+    }
+
+    func testGetPullRequestsFilteredByAuthor() async throws {
+        // Arrange
+        let repo = Repo(organization: organization, name: repo)
+
+        // Act
+        let pullRequestFilterFactory = PullRequestFilterFactory(maxResults: 10, state: .closed, author: "cybersonik")
+        let filter = pullRequestFilterFactory.makeRequestFilter()
+        let pullRequests = try await repo.getPullRequests(filter: filter)
+
+        // Assert
+        XCTAssertNotNil(pullRequests)
+        XCTAssertGreaterThan(pullRequests.count, 0)
+        for pullRequest in pullRequests {
+            XCTAssertEqual(pullRequest.state, .closed)
+        }
     }
 }

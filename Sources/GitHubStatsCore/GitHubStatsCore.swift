@@ -55,8 +55,8 @@ public class GitHubRepo {
     
     public func getPullRequests(filter: RequestFilter<PullRequest>) async throws -> [PullRequest] {
         let factory = EndpointFactory(organization: organization, name: repo)
-        let session = factory.makeGitHubSession(for: .pulls, with: filter.queryParameters)
-        let pullRequests: [PullRequest] = try await session.callEndpoint(filter: filter) ?? []
+        let session = factory.makeGitHubSession(for: .pulls)
+        let pullRequests: [PullRequest] = try await session.callEndpoint(filter: filter)
 
         return pullRequests
     }

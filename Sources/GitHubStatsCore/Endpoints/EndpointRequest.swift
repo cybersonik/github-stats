@@ -15,35 +15,31 @@ public struct EndpointRequest {
 
     private let repo: Repo
     private let path: String
-    private let queryParams: [String: String]
 
-    internal init(repo: Repo, path: String, queryParams: [String: String]) {
+    internal init(repo: Repo, path: String) {
         self.repo = repo
         self.path = path
-        self.queryParams = queryParams
     }
 
-    public func makeRequest(maxResultCount: Int? = nil) -> URLRequest {
-        let url = constructURL(maxResultCount: maxResultCount)
+    public func makeRequest(queryParameters: [String: String]? = nil) -> URLRequest {
+        let url = constructURL(queryParameters: queryParameters)
         return makeURLRequest(with: url)
     }
 
-    public func makeNextRequest(with nextPageUrl: URL, maxResultCount: Int? = nil) -> URLRequest {
+    public func makeNextRequest(with nextPageUrl: URL) -> URLRequest {
         return makeURLRequest(with: nextPageUrl)
     }
 
-    private func constructURL(maxResultCount: Int? = nil) -> URL {
+    private func constructURL(queryParameters: [String: String]? = nil) -> URL {
         var urlBuilder = URLComponents()
 
         urlBuilder.scheme = "https"
         urlBuilder.host = "api.github.com"
         urlBuilder.path = "/repos/\(repo.organization)/\(repo.name)/\(path)"
-        urlBuilder.queryItems = queryParams.map({ (key: String, value: String) in
-            URLQueryItem(name: key, value: value)
-        })
-
-        if let maxResultCount {
-            urlBuilder.queryItems?.append(URLQueryItem(name: "limit", value: String(maxResultCount)))
+        if let queryParameters {
+            urlBuilder.queryItems = queryParameters.map({ (key: String, value: String) in
+                URLQueryItem(name: key, value: value)
+            })
         }
 
         guard let url = urlBuilder.url else {

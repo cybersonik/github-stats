@@ -18,17 +18,18 @@ public struct EndpointSession {
     }
 
     // TODO: replace RequestFilter<PullRequestFilter> with generic type
-    public func callEndpoint<T: GitHubObject>(filter: RequestFilter<T>) async throws -> [T]? {
+    public func callEndpoint<T: GitHubObject>(filter: RequestFilter<T>) async throws -> [T] {
         var results = Array<T>()
-        let maxResults = filter.maxResults
 
-        var url = endpointRequest.makeRequest(maxResultCount: maxResults)
+        var url = endpointRequest.makeRequest(queryParameters: filter.queryParameters)
         var shouldContinue = false
 
         repeat {
+            var result: (data: Data, response: URLResponse)? = nil
+            
             do {
 #if os(Linux)
-                let result = try await withCheckedThrowingContinuation { continuation in
+                result = try await withCheckedThrowingContinuation { continuation in
                     URLSession.shared.dataTask(with: url) { data, response, error in
                         if let data, let response {
                             continuation.resume(returning: (data, response))
@@ -39,34 +40,40 @@ public struct EndpointSession {
                         }
                     }.resume()
                 }
-                let (data, response) = (result.0, result.1)
 #else
-                let (data, response) = try await URLSession.shared.data(for: url)
+                result = try await URLSession.shared.data(for: url)
 #endif
-
-                guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
-                    throw EndpointError.statusCodeNotOK
-                }
-
-                let resultsPage: [T] = try JSONDecoder().decode([T].self, from: data)
-                if let filterFunction = filter.filterFunction {
-                    let filteredResults = resultsPage.filter(filterFunction)
-                    results.append(contentsOf: filteredResults)
-                } else {
-                    results.append(contentsOf: resultsPage)
-                }
-
-                if results.count >= maxResults {
-                    results.removeSubrange(maxResults...)
-                    shouldContinue = false
-                } else if let nextPageUrl = getNextPageUrl(from: httpResponse) {
-                    url = endpointRequest.makeNextRequest(with: nextPageUrl, maxResultCount: maxResults)
-                    shouldContinue = true
-                } else {
-                    shouldContinue = false
-                }
             } catch {
                 print(error)
+            }
+
+            guard let result else {
+                throw EndpointError.urlSessionError
+            }
+            
+            guard let httpResponse = result.response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
+                let httpResponse = result.response as? HTTPURLResponse
+                let statusCode = httpResponse?.statusCode ?? 418
+                throw EndpointError.unsuccessfulResponseError(httpResponseStatusCode: statusCode)
+            }
+
+            let resultsPage: [T] = try JSONDecoder().decode([T].self, from: result.data)
+            if let filterFunction = filter.filterFunction {
+                let filteredResults = resultsPage.filter(filterFunction)
+                results.append(contentsOf: filteredResults)
+            } else {
+                results.append(contentsOf: resultsPage)
+            }
+
+            let maxResults = filter.maxResults
+            if results.count >= maxResults {
+                results.removeSubrange(maxResults...)
+                shouldContinue = false
+            } else if let nextPageUrl = getNextPageUrl(from: httpResponse) {
+                url = endpointRequest.makeNextRequest(with: nextPageUrl)
+                shouldContinue = true
+            } else {
+                shouldContinue = false
             }
         } while shouldContinue
 

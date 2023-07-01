@@ -18,9 +18,6 @@ public struct RequestFilter<Element> {
     public var queryParameters: [String: String] {
         var queryParameters = [String: String]()
 
-        let maxResultsValue = String(maxResults)
-        queryParameters["maxResults"] = maxResultsValue
-
         queryParameters.merge(additionalFilters) { (_, new) in new }
 
         return queryParameters
