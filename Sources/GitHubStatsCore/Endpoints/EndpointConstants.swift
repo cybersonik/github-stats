@@ -10,7 +10,7 @@ import Foundation
 internal enum GitHubConstants {
     static let gitRepoExtension = ".git"
 
-    static let gitHubTokenEnvironmentVariable = "GITHUB_TOKEN"
+    static let gitHubTokenEnvironmentVariable = "TEST_GITHUB_TOKEN"
 
     static let gitHubUrlRegex = #/^git@github\.com:(?<org>[\w\-\.]+)/(?<repo>[\w\-\.]+)$/#
 
