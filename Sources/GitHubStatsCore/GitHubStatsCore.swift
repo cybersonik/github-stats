@@ -53,10 +53,11 @@ public class GitHubRepo {
         self.urlBuilder.path = "/repos/\(self.organization)/\(self.repo)"
     }
     
-    public func getPullRequests(limit: Int = Int.max, state: PullRequest.State = .open) async throws -> [PullRequest] {
+    @available(*, deprecated, message: "Use Repo.getPullRequests(filter:) instead")
+    public func getPullRequests(filter: RequestFilter<PullRequest>) async throws -> [PullRequest] {
         let factory = EndpointFactory(organization: organization, name: repo)
-        let session = factory.makeGitHubSession(for: .pulls(state: .open))
-        let pullRequests: [PullRequest] = try await session.callEndpoint(maxResultCount: limit) ?? Array<PullRequest>()
+        let session = factory.makeGitHubSession(for: .pulls)
+        let pullRequests: [PullRequest] = try await session.callEndpoint(filter: filter)
 
         return pullRequests
     }

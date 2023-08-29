@@ -1,39 +1,47 @@
 {
-	"version": "2.0.0",
-	"tasks": [
-		{
-			"type": "swift",
-			"args": [
-				"package",
-				"resolve"
-			],
-            "cwd": "",
-			"problemMatcher": [
-				"$swiftc"
-			],
-			"label": "swift: Resolve package dependencies",
-			"detail": "swift package resolve"
-		},
-		{
-			"type": "swift",
-			"args": [
-				"build",
-				"--product",
-				"githubstats"
-			],
-            "cwd": "",
-			"problemMatcher": [
-				"$swiftc"
-			],
-			"group": {
-				"kind": "build",
-				"isDefault": true
-			},
-			"label": "swift: Build Debug githubstats",
-			"detail": "swift build --product githubstats",
-			"dependsOn":[
-				"swift: Resolve package dependencies"
-			]
-		}
-	]
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "type": "swift",
+      "args": ["package", "resolve"],
+      "cwd": "",
+      "problemMatcher": ["$swiftc"],
+      "label": "swift: Resolve package dependencies",
+      "detail": "swift package resolve"
+    },
+    {
+      "type": "swift",
+      "args": ["build", "--product", "githubstats"],
+      "cwd": "",
+      "problemMatcher": ["$swiftc"],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "label": "swift: Build Debug githubstats",
+      "detail": "swift build --product githubstats",
+      "dependsOn": ["swift: Resolve package dependencies"]
+    },
+    {
+      "type": "swift",
+      "args": ["test"],
+      "cwd": "",
+      "problemMatcher": ["$swiftc"],
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      },
+      "label": "swift: Test",
+      "detail": "swift test",
+      "dependsOn": ["swift: Build Debug githubstats"]
+    },
+    {
+      "type": "swift",
+      "args": ["package", "clean"],
+      "cwd": "",
+      "problemMatcher": ["$swiftc"],
+      "label": "swift: Clean",
+      "detail": "swift package clean"
+    }
+  ]
 }

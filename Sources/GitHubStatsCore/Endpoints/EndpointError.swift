@@ -8,6 +8,7 @@
 import Foundation
 
 public enum EndpointError: Error {
-    case statusCodeNotOK
+    case urlSessionError
+    case unsuccessfulResponseError(httpResponseStatusCode: Int)
     case unknownError
 }

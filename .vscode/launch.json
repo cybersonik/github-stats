@@ -12,7 +12,12 @@
                 "--organization",
                 "apple",
                 "--repo",
-                "swift.git"
+                "swift.git",
+                "get-prs",
+                "--max",
+                "25",
+                "--state",
+                "closed"
             ],
             "envFile": "${workspaceFolder:github-stats}/.env",
             "cwd": "${workspaceFolder:github-stats}",

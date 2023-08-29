@@ -14,10 +14,14 @@ public struct EndpointFactory {
         self.repo = Repo(organization: organization, name: name)
     }
 
-   public func makeGitHubSession(for endpoint: Endpoints) -> EndpointSession {
+    init(repo: Repo) {
+        self.repo = repo
+    }
+
+    public func makeGitHubSession(for endpoint: Endpoints) -> EndpointSession {
         switch endpoint {
-            case .pulls(let state):
-                let request = EndpointRequest(repo: repo, path: "pulls", queryParams: ["state": "\(state.rawValue)"])
+            case .pulls:
+                let request = EndpointRequest(repo: repo, path: "pulls")
                 let session = EndpointSession(endpointRequest: request)
                 return session
         }

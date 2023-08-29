@@ -30,7 +30,10 @@ let package = Package(
             ]
         ),
         .target(
-            name: "GitHubStatsCore"
+            name: "GitHubStatsCore",
+            dependencies: [
+                .product(name: "ArgumentParser", package: "swift-argument-parser")
+            ]
         ),
         .testTarget(
             name: "GitHubStatsCoreTests",

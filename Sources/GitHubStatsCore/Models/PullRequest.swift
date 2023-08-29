@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import ArgumentParser
 
 public struct PullRequest: GitHubObject {
     public var id: Int
@@ -16,7 +17,7 @@ public struct PullRequest: GitHubObject {
     public var user: User
     public var assignees: [User]
 
-    public enum State: String, Codable {
+    public enum State: String, Codable, ExpressibleByArgument {
         case open
         case closed
         case all

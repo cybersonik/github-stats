@@ -2,9 +2,13 @@ import XCTest
 @testable import GitHubStatsCore
 
 final class GitHubStatsCore: XCTestCase {
+    override func setUpWithError() throws {
+        throw XCTSkip("Replaced by RepoTests")
+    }
+
     func testRepoInitWithSshUrl() throws {
         // Arrange
-        let gitHubSshUrl = "git@github.com:cybersonik/PhotoPicker.git"
+        let gitHubSshUrl = "git@github.com:apple/swift.git"
         
         // Act
         let repo = GitHubRepo(repoUrl: gitHubSshUrl)
@@ -15,7 +19,7 @@ final class GitHubStatsCore: XCTestCase {
     
     func testRepoInitWithHttpUrl() throws {
         // Arrange
-        let gitHubHttpUrl = "https://github.com/cybersonik/PhotoPicker.git"
+        let gitHubHttpUrl = "https://github.com/apple/swift.git"
         
         // Act
         let repo = GitHubRepo(repoUrl: gitHubHttpUrl)
@@ -26,7 +30,7 @@ final class GitHubStatsCore: XCTestCase {
     
     func testRepoInitWithUrl() throws {
         // Arrange
-        let gitHubUrl = URL(string: "https://github.com/cybersonik/PhotoPicker.git")!
+        let gitHubUrl = URL(string: "https://github.com/apple/swift.git")!
         
         // Act
         let repo = GitHubRepo(url: gitHubUrl)

@@ -11,7 +11,7 @@ public struct Repo {
     public let organization: String
     public let name: String
 
-    init?(repoUrl: String) {
+    public init?(repoUrl: String) {
         if let match = repoUrl.wholeMatch(of: GitHubConstants.gitHubUrlRegex){
             let (_, org, repo) = match.output
 
@@ -23,7 +23,7 @@ public struct Repo {
         return nil
     }
 
-    init?(url: URL) {
+    public init?(url: URL) {
         guard url.pathComponents.count >= 2 else {
             return nil
         }
@@ -43,5 +43,13 @@ public struct Repo {
                                     ? String(name.dropLast(GitHubConstants.gitRepoExtension.count))
                                     : name
         self.name = nameWithoutExtension
+    }
+
+    public func getPullRequests(filter: RequestFilter<PullRequest>) async throws -> [PullRequest] {
+        let factory = EndpointFactory(repo: self)
+        let session = factory.makeGitHubSession(for: .pulls)
+        let pullRequests: [PullRequest] = try await session.callEndpoint(filter: filter)
+
+        return pullRequests
     }
 }

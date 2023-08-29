@@ -7,6 +7,4 @@
 
 import Foundation
 
-public protocol GitHubObject: Codable {
-
-}
+public protocol GitHubObject: Codable {}

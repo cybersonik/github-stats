@@ -4,7 +4,7 @@ import XCTest
 final class RepoTests: XCTestCase {
     func testRepoInitWithSshUrl() throws {
         // Arrange
-        let gitHubSshUrl = "git@github.com:cybersonik/PhotoPicker.git"
+        let gitHubSshUrl = "git@github.com:apple/swift.git"
         
         // Act
         let repo = Repo(repoUrl: gitHubSshUrl)
@@ -15,7 +15,7 @@ final class RepoTests: XCTestCase {
     
     func testRepoInitWithHttpUrl() throws {
         // Arrange
-        let gitHubHttpUrl = "https://github.com/cybersonik/PhotoPicker.git"
+        let gitHubHttpUrl = "https://github.com/apple/swift.git"
         
         // Act
         let repo = Repo(repoUrl: gitHubHttpUrl)
@@ -26,7 +26,7 @@ final class RepoTests: XCTestCase {
     
     func testRepoInitWithUrl() throws {
         // Arrange
-        let gitHubUrl = URL(string: "https://github.com/cybersonik/PhotoPicker.git")!
+        let gitHubUrl = URL(string: "https://github.com/apple/swift.git")!
         
         // Act
         let repo = Repo(url: gitHubUrl)
