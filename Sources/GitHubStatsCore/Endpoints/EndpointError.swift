@@ -9,6 +9,7 @@ import Foundation
 
 public enum EndpointError: Error {
     case urlSessionError
+    case rateLimitError(retryAfterSeconds: Int)
     case unsuccessfulResponseError(httpResponseStatusCode: Int)
     case unknownError
 }

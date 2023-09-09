@@ -16,8 +16,10 @@ internal enum GitHubConstants {
 
     static let defaultMaxResults = 100
     
+    static let numberOfConcurrentFetches = 3
+
     static let nextPageLinkHeader = "link"
 
-    // <https://api.github.com/repositories/44838949/pulls?state=closed&page=2>; rel="next", <https://api.github.com/repositories/44838949/pulls?state=closed&page=1599>; rel="last"
     static let nextPageLinkRegex = #/<([^>]+)>; rel="next"/# //i;
+    static let nextPageLinkAndLastPageRegex = #/<([^>]+)&page=(\d+)>; rel="next", <[^>]+&page=(\d+)>; rel="last"/# //i;
 }

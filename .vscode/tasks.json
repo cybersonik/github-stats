@@ -24,14 +24,14 @@
     },
     {
       "type": "swift",
-      "args": ["build", "--sanitize=thread", "--product", "githubstats"],
+      "args": ["build", "--sanitize=thread", "--build-tests"],
       "cwd": "",
       "problemMatcher": ["$swiftc"],
       "group": {
         "kind": "build",
       },
       "label": "swift: Build with thread sanitizer",
-      "detail": "swift build --sanitize=thread --product githubstats",
+      "detail": "swift build --sanitize=thread --build-tests",
       "dependsOn": ["swift: Resolve package dependencies"]
     },
     {
@@ -57,7 +57,7 @@
       },
       "label": "swift: Test with thread sanitizer",
       "detail": "swift test --sanitize=thread",
-      "dependsOn": ["swift build --sanitize=thread --product githubstats"]
+      "dependsOn": ["swift build --sanitize=thread --build-tests"]
     },
     {
       "type": "swift",
