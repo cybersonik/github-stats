@@ -24,6 +24,18 @@
     },
     {
       "type": "swift",
+      "args": ["build", "--sanitize=thread", "--product", "githubstats"],
+      "cwd": "",
+      "problemMatcher": ["$swiftc"],
+      "group": {
+        "kind": "build",
+      },
+      "label": "swift: Build with thread sanitizer",
+      "detail": "swift build --sanitize=thread --product githubstats",
+      "dependsOn": ["swift: Resolve package dependencies"]
+    },
+    {
+      "type": "swift",
       "args": ["test"],
       "cwd": "",
       "problemMatcher": ["$swiftc"],
@@ -31,9 +43,21 @@
         "kind": "test",
         "isDefault": true
       },
-      "label": "swift: Test",
+      "label": "swift: Test Debug",
       "detail": "swift test",
-      "dependsOn": ["swift: Build Debug githubstats"]
+      "dependsOn": ["swift build --product githubstats"]
+    },
+    {
+      "type": "swift",
+      "args": ["test", "--sanitize=thread"],
+      "cwd": "",
+      "problemMatcher": ["$swiftc"],
+      "group": {
+        "kind": "test",
+      },
+      "label": "swift: Test with thread sanitizer",
+      "detail": "swift test --sanitize=thread",
+      "dependsOn": ["swift build --sanitize=thread --product githubstats"]
     },
     {
       "type": "swift",
