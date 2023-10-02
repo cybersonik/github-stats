@@ -2,6 +2,10 @@
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-swift
 
 name: Swift
+permissions:
+  id-token: write
+  contents: read
+  checks: write
 
 on:
   push:
@@ -16,7 +20,7 @@ jobs:
     strategy:
       matrix:
         os: [macos-13, ubuntu-latest]
-        
+
     steps:
     - uses: swift-actions/setup-swift@v1
     - uses: actions/checkout@v3
@@ -32,6 +36,14 @@ jobs:
       run: |
         echo "$TEST_GITHUB_TOKEN" > $HOME/.env
     - name: Build
-      run: swift build -v
+      run: swift build
     - name: Run tests
-      run: swift test -v
+      run: swift test --parallel --xunit-output=results.xml
+    - name: Report test results
+      uses: phoenix-actions/test-reporting@v8
+      id: test-report
+      if: success() || failure()    # run this step even if previous step failed
+      with:
+        name: Swift tests on ${{ matrix.os }}
+        path: results.xml
+        reporter: java-junit
