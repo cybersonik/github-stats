@@ -25,38 +25,9 @@ public struct EndpointSession {
         var shouldContinue = false
 
         repeat {
-            var result: (data: Data, response: URLResponse)? = nil
+            // rethrow error from callEndpoint
+            let result = try await callEndpoint(url: url)
             
-            do {
-#if os(Linux)
-                result = try await withCheckedThrowingContinuation { continuation in
-                    URLSession.shared.dataTask(with: url) { data, response, error in
-                        if let data, let response {
-                            continuation.resume(returning: (data, response))
-                        } else if let error = error {
-                            continuation.resume(throwing: error)
-                        } else {
-                            continuation.resume(throwing: EndpointError.unknownError)
-                        }
-                    }.resume()
-                }
-#else
-                result = try await URLSession.shared.data(for: url)
-#endif
-            } catch {
-                print(error)
-            }
-
-            guard let result else {
-                throw EndpointError.urlSessionError
-            }
-            
-            guard let httpResponse = result.response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
-                let httpResponse = result.response as? HTTPURLResponse
-                let statusCode = httpResponse?.statusCode ?? 418
-                throw EndpointError.unsuccessfulResponseError(httpResponseStatusCode: statusCode)
-            }
-
             let resultsPage: [T] = try JSONDecoder().decode([T].self, from: result.data)
             if let filterFunction = filter.filterFunction {
                 let filteredResults = resultsPage.filter(filterFunction)
@@ -69,7 +40,7 @@ public struct EndpointSession {
             if results.count >= maxResults {
                 results.removeSubrange(maxResults...)
                 shouldContinue = false
-            } else if let nextPageUrl = getNextPageUrl(from: httpResponse) {
+            } else if let nextPageUrl = getNextPageUrl(from: result.httpResponse) {
                 url = endpointRequest.makeNextRequest(with: nextPageUrl)
                 shouldContinue = true
             } else {
@@ -78,6 +49,42 @@ public struct EndpointSession {
         } while shouldContinue
 
         return results
+    }
+
+    private func callEndpoint(url: URLRequest) async throws -> (data: Data, httpResponse: HTTPURLResponse) {
+        var result: (data: Data, response: URLResponse)? = nil
+
+        do {
+#if os(Linux)
+            result = try await withCheckedThrowingContinuation { continuation in
+                URLSession.shared.dataTask(with: url) { data, response, error in
+                    if let data, let response {
+                        continuation.resume(returning: (data, response))
+                    } else if let error = error {
+                        continuation.resume(throwing: error)
+                    } else {
+                        continuation.resume(throwing: EndpointError.unknownError)
+                    }
+                }.resume()
+            }
+#else
+            result = try await URLSession.shared.data(for: url)
+#endif
+        } catch {
+            print(error)
+        }
+
+        guard let result else {
+            throw EndpointError.urlSessionError
+        }
+        
+        guard let httpResponse = result.response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
+            let httpResponse = result.response as? HTTPURLResponse
+            let statusCode = httpResponse?.statusCode ?? 418
+            throw EndpointError.unsuccessfulResponseError(httpResponseStatusCode: statusCode)
+        }
+
+        return (result.data, httpResponse)
     }
 
     func getNextPageUrl(from response: HTTPURLResponse) -> URL? {
