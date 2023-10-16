@@ -134,13 +134,13 @@ final class EndpointTests: XCTestCase {
     }
 
     func testGetPullRequestsPerformance() {
-        self.measure {
+        let testBlock = {
             // Arrange
-            let expectation = expectation(description: "Get pull requests")
-            let repo = Repo(organization: organization, name: repo)
+            let expectation = self.expectation(description: "Get pull requests")
+            let repo = Repo(organization: self.organization, name: self.repo)
 
             // Act
-            let pullRequestFilterFactory = PullRequestFilterFactory(maxResults: 25, state: .closed, author: author)
+            let pullRequestFilterFactory = PullRequestFilterFactory(maxResults: 25, state: .closed, author: self.author)
             let filter = pullRequestFilterFactory.makeRequestFilter()
 
             Task {
@@ -152,7 +152,13 @@ final class EndpointTests: XCTestCase {
                 expectation.fulfill()
             }
 
-            wait(for: [expectation], timeout: 60)
+            self.wait(for: [expectation], timeout: 60)
         }
+
+#if os(Linux)
+        self.measure(block: testBlock)
+#else
+        self.measure(metrics: [XCTCPUMetric(), XCTClockMetric(), XCTMemoryMetric()], block: testBlock)
+#endif
     }
 }
