@@ -1,5 +1,5 @@
 //
-//  GitHubEndpointTests.swift
+//  EndpointTests.swift
 //
 //
 //  Created by Jesse Wesson on 5/22/23.
@@ -49,7 +49,8 @@ final class EndpointTests: XCTestCase {
         XCTAssertNil(pullRequests)
         XCTAssertNotNil(thrownError)
         XCTAssertTrue(thrownError is EndpointError)
-        XCTAssertEqual(returnedStatusCode, 404)
+        XCTAssertNotNil(returnedStatusCode)
+        XCTAssertEqual(returnedStatusCode!, 404)
     }
 
     func testGetPullRequests() async throws {
@@ -134,7 +135,14 @@ final class EndpointTests: XCTestCase {
     }
 
     func testGetPullRequestsPerformance() {
+        EndpointEnvironment.urlSessionConfiguration = .ephemeral
+        defer {
+            EndpointEnvironment.urlSessionConfiguration = .default
+        }
+
         let testBlock = {
+            print("Run testGetPullRequestsPerformance()")
+            
             // Arrange
             let expectation = self.expectation(description: "Get pull requests")
             let repo = Repo(organization: self.organization, name: self.repo)
@@ -152,13 +160,15 @@ final class EndpointTests: XCTestCase {
                 expectation.fulfill()
             }
 
-            self.wait(for: [expectation], timeout: 60)
+            self.wait(for: [expectation], timeout: 240)
         }
 
 #if os(Linux)
         self.measure(block: testBlock)
 #else
-        self.measure(metrics: [XCTCPUMetric(), XCTClockMetric(), XCTMemoryMetric()], block: testBlock)
+        let options = XCTMeasureOptions()
+//        options.iterationCount = 10
+        self.measure(metrics: [XCTCPUMetric(), XCTClockMetric(), XCTMemoryMetric()], options: options, block: testBlock)
 #endif
     }
 }
