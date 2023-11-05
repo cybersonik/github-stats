@@ -20,10 +20,10 @@ public struct EndpointFactory {
 
     public func makeGitHubSession(for endpoint: Endpoints) -> EndpointSession {
         switch endpoint {
-            case .pulls:
-                let request = EndpointRequest(repo: repo, path: "pulls")
-                let session = EndpointSession(endpointRequest: request)
-                return session
+        case .pulls:
+            let request = EndpointRequest(repo: repo, path: "pulls")
+            let session = EndpointSession(endpointRequest: request)
+            return session
         }
     }
 }

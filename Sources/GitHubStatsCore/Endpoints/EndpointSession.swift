@@ -20,20 +20,20 @@ public struct EndpointSession {
 
         let configuration = EndpointEnvironment.urlSessionConfiguration
         // configuration.httpMaximumConnectionsPerHost = 3
-        session = URLSession.init(configuration: configuration)
+        session = URLSession(configuration: configuration)
         session.sessionDescription = "GitHub Endpoint Session"
     }
-    
+
     // TODO: replace RequestFilter<PullRequestFilter> with generic type
     public func callEndpoint<T: GitHubObject>(filter: RequestFilter<T>) async throws -> [T] {
-        var results = Array<T>()
-        
+        var results = [T]()
+
         let url = endpointRequest.makeRequest(queryParameters: filter.queryParameters)
         var urlsToFetch = [URLRequest]()
         var urlsToFetchNext = [url]
-        
+
         var shouldContinue = false
-        
+
         repeat {
             let urlsToFetchCount = urlsToFetchNext.count > GitHubConstants.numberOfConcurrentFetches
                                     ? GitHubConstants.numberOfConcurrentFetches
@@ -42,32 +42,22 @@ public struct EndpointSession {
             urlsToFetch = Array(urlsToFetchNext[urlsToFetchRange])
             urlsToFetchNext.removeSubrange(urlsToFetchRange)
             var httpResults = [(data: Data, httpResponse: HTTPURLResponse)]()
-            
-            let _ = try await withThrowingTaskGroup(of: (data: Data, httpResponse: HTTPURLResponse).self) { taskGroup in
+
+            _ = try await withThrowingTaskGroup(of: (data: Data, httpResponse: HTTPURLResponse).self) { taskGroup in
                 for url in urlsToFetch {
                     taskGroup.addTask {
-                        var retry = false
-                        repeat {
-                            do{
-                                return try await callEndpoint(url: url)
-                            } catch EndpointError.rateLimitError(let retryAfterSeconds) {
-                                retry = true
-                                try await Task.sleep(nanoseconds: UInt64(retryAfterSeconds * 1_000_000_000))
-                            } catch let error {
-                                throw error
-                            }
-                        } while retry
+                        return try await callEndpointWithRetry(url: url)
                     }
                 }
-                
+
                 while let result = try await taskGroup.next() {
                     httpResults.append(result)
                 }
-                
+
                 return httpResults
             }
-            
-            guard httpResults.count > 0 else {
+
+            guard !httpResults.isEmpty else {
                 throw EndpointError.unknownError
             }
 
@@ -85,7 +75,7 @@ public struct EndpointSession {
             if results.count >= maxResults {
                 results.removeSubrange(maxResults...)
                 shouldContinue = false
-            } else if urlsToFetchNext.count > 0 {
+            } else if !urlsToFetchNext.isEmpty {
                 shouldContinue = true
             } else if httpResults.count == 1, let nextPageUrls = getNextPagesUrls(from: httpResults.first!.httpResponse) {
                 urlsToFetchNext = nextPageUrls.map { endpointRequest.makeNextRequest(with: $0) }
@@ -94,13 +84,27 @@ public struct EndpointSession {
                 shouldContinue = false
             }
         } while shouldContinue
-        
+
         return results
     }
-    
-    private func callEndpoint(url: URLRequest) async throws -> (data: Data, httpResponse: HTTPURLResponse) {
-        var result: (data: Data, response: URLResponse)? = nil
-        
+
+    private func callEndpointWithRetry(url: URLRequest) async throws -> (data: Data, httpResponse: HTTPURLResponse) {
+        var retry = false
+        repeat {
+            do {
+                return try await fetchResult(url: url)
+            } catch EndpointError.rateLimitError(let retryAfterSeconds) {
+                retry = true
+                try await Task.sleep(nanoseconds: UInt64(retryAfterSeconds * 1_000_000_000))
+            } catch let error {
+                throw error
+            }
+        } while retry
+    }
+
+    private func fetchResult(url: URLRequest) async throws -> (data: Data, httpResponse: HTTPURLResponse) {
+        var result: (data: Data, response: URLResponse)?
+
         do {
 #if os(Linux)
             result = try await withCheckedThrowingContinuation { continuation in
@@ -112,7 +116,8 @@ public struct EndpointSession {
                     } else {
                         continuation.resume(throwing: EndpointError.unknownError)
                     }
-                }.resume()
+                }
+                .resume()
             }
 #else
             result = try await session.data(for: url)
@@ -120,87 +125,87 @@ public struct EndpointSession {
         } catch {
             print(error)
         }
-        
+
         guard let result else {
             throw EndpointError.urlSessionError
         }
-        
+
         guard let httpResponse = result.response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
             let httpResponse = result.response as? HTTPURLResponse
             let statusCode = httpResponse?.statusCode ?? 418
-            
+
             if statusCode == 403, let retryAfter = httpResponse?.value(forHTTPHeaderField: "Retry-After") {
                 throw EndpointError.rateLimitError(retryAfterSeconds: Int(retryAfter) ?? 60)
             } else {
                 throw EndpointError.unsuccessfulResponseError(httpResponseStatusCode: statusCode)
             }
         }
-        
+
         return (result.data, httpResponse)
     }
-    
+
     @available(*, deprecated, message: "Use EndpointSession.getNextPagesUrls(from:) instead")
     func getNextPageUrl(from response: HTTPURLResponse) -> URL? {
         guard let linkHeader = response.value(forHTTPHeaderField: GitHubConstants.nextPageLinkHeader) else {
             return nil
         }
-        
+
         return EndpointSession.getNextPageUrl(from: linkHeader)
     }
-    
+
     @available(*, deprecated, message: "Use EndpointSession.getNextPagesUrls(from:) instead")
     static func getNextPageUrl(from linkHeader: String) -> URL? {
         guard let match = linkHeader.firstMatch(of: GitHubConstants.nextPageLinkRegex) else {
             return nil
         }
-        
+
         let (_, nextPage) = match.output
         return URL(string: String(nextPage))
     }
-    
+
     func getNextPagesUrls(from response: HTTPURLResponse) -> [URL]? {
         guard let linkHeader = response.value(forHTTPHeaderField: GitHubConstants.nextPageLinkHeader) else {
             return nil
         }
-        
+
         return EndpointSession.getNextPagesUrls(from: linkHeader)
     }
-    
+
     static func getNextPagesUrls(from linkHeader: String) -> [URL]? {
         guard let match = linkHeader.firstMatch(of: GitHubConstants.nextPageLinkAndLastPageRegex) else {
             return nil
         }
-        
+
         let (_, nextPageBaseURL, nextPageNumber, lastPageNumber) = match.output
-        
+
         let start = Int(String(nextPageNumber)) ?? 0
         let end = Int(String(lastPageNumber)) ?? 0
-        
+
         let nextPageURL = URL(string: String(nextPageBaseURL))
         guard let nextPageURL else {
             return nil
         }
-        
-        var nextPageURLs = Array<URL>()
+
+        var nextPageURLs = [URL]()
         for pageNumber in start...end {
             // convert int to string
             let page = String(pageNumber)
 #if os(Linux)
             var urlBuilder = URLComponents(url: nextPageURL, resolvingAgainstBaseURL: false)
-            
+
             if let queryItems = urlBuilder?.queryItems, queryItems.isEmpty {
                 urlBuilder?.queryItems = [URLQueryItem(name: "page", value: page)]
             } else {
                 urlBuilder?.queryItems?.append(contentsOf: [URLQueryItem(name: "page", value: page)])
             }
-            
+
             let pageURL = urlBuilder!.url!
 #else
             let pageURL = nextPageURL.appending(queryItems: [URLQueryItem(name: "page", value: page)])
 #endif
             nextPageURLs.append(pageURL)
         }
-        
+
         return nextPageURLs
     }
 }
