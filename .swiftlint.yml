@@ -58,8 +58,6 @@ opt_in_rules:
   - unavailable_function
   - unneeded_parentheses_in_closure_argument
   - unowned_variable_capture
-  - unused_declaration
-  - unused_import
   - vertical_parameter_alignment_on_call
   - vertical_whitespace
   - vertical_whitespace_between_cases
@@ -77,6 +75,10 @@ opt_in_rules:
   # - lower_acl_than_parent
   # - no_extension_access_modifier
 
+analyzer_rules: 
+  - unused_declaration
+  - unused_import
+
 excluded:
   - .swiftpm
   - .build
@@ -85,7 +87,7 @@ excluded:
 cyclomatic_complexity: 12
 
 identifier_name:
-  excluded: ["_", "i", "j", "v", "dx", "dy", "up", "on", "off"]
+  excluded: ["_", "i", "j", "v", "dx", "dy", "id", "up", "on", "off"]
 
 line_length: 200
 
