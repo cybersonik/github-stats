@@ -8,13 +8,13 @@
 import Foundation
 
 public struct PullRequestFilterFactory {
-    public var additionalQueryParameters: [String : String] {
+    public var additionalQueryParameters: [String: String] {
         ["state": state.rawValue]
     }
 
     public var maxResults: Int = GitHubConstants.defaultMaxResults
     public var state: PullRequest.State = .open
-    public var author: String? = nil
+    public var author: String?
 
     private enum QueryParameter: String {
         case state
@@ -34,7 +34,7 @@ public struct PullRequestFilterFactory {
     }
 
     public func makeRequestFilter() -> RequestFilter<PullRequest> {
-        var filterFunction: ((PullRequest) -> Bool)? = nil
+        var filterFunction: ((PullRequest) -> Bool)?
 
         if let author {
             filterFunction = { (pullRequest: PullRequest) -> Bool in

@@ -7,7 +7,6 @@
 
 import Foundation
 
-
 public struct RequestFilter<Element> {
     public var maxResults: Int = 100
 
@@ -18,7 +17,7 @@ public struct RequestFilter<Element> {
     public var queryParameters: [String: String] {
         var queryParameters = [String: String]()
 
-        queryParameters.merge(additionalFilters) { (_, new) in new }
+        queryParameters.merge(additionalFilters) { _, new in new }
 
         return queryParameters
     }

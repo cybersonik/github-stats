@@ -12,7 +12,7 @@ public struct Repo {
     public let name: String
 
     public init?(repoUrl: String) {
-        if let match = repoUrl.wholeMatch(of: GitHubConstants.gitHubUrlRegex){
+        if let match = repoUrl.wholeMatch(of: GitHubConstants.gitHubUrlRegex) {
             let (_, org, repo) = match.output
 
             self.init(organization: String(org), name: String(repo))

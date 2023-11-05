@@ -3,7 +3,7 @@
 
 import PackageDescription
 
-let package = Package(
+internal let package = Package(
     name: "GitHubStats",
     platforms: [
         .macOS(.v13)
@@ -13,11 +13,12 @@ let package = Package(
         .executable(
             name: "githubstats",
             targets: ["GitHubStats"]),
-        .library(name: "GitHubStatsCore", targets: ["GitHubStatsCore"]),
+        .library(name: "GitHubStatsCore", targets: ["GitHubStatsCore"])
     ],
     dependencies: [
         // Dependencies declare other packages that this package depends on.
-        .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.2.2")
+        .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.2.2"),
+        .package(url: "https://github.com/realm/SwiftLint.git", from: "0.53.0")
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
@@ -33,11 +34,12 @@ let package = Package(
             name: "GitHubStatsCore",
             dependencies: [
                 .product(name: "ArgumentParser", package: "swift-argument-parser")
-            ]
+            ],
+            plugins: [.plugin(name: "SwiftLintPlugin", package: "SwiftLint")]
         ),
         .testTarget(
             name: "GitHubStatsCoreTests",
             dependencies: ["GitHubStatsCore"]
-        ),
+        )
     ]
 )
