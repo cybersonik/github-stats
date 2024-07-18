@@ -12,6 +12,11 @@ internal enum GitHubConstants {
 
     static let gitHubTokenEnvironmentVariable = "TEST_GITHUB_TOKEN"
 
+    static let gitHubUserAgentString = "github-stats-cli"
+
+    static let retryAfterHeader = "Retry-After"
+    static let contentTypeHeader = "Content-Type"
+
     static let gitHubUrlRegex = #/^git@github\.com:(?<org>[\w\-\.]+)/(?<repo>[\w\-\.]+)$/#
 
     static let defaultMaxResults = 100

@@ -28,6 +28,7 @@ final class EndpointTests: XCTestCase {
         var pullRequests: [PullRequest]?
         var thrownError: Error?
         var returnedStatusCode: Int?
+        var returnedBody: String?
         do {
             let filter = PullRequestFilterFactory.makeDefaultRequestFilter()
             pullRequests = try await repo.getPullRequests(filter: filter)
@@ -36,10 +37,12 @@ final class EndpointTests: XCTestCase {
             thrownError = error
 
             switch error {
-                case .unsuccessfulResponseError(let responseCode):
-                    returnedStatusCode = responseCode
-                default:
-                    XCTFail("Control flow should never reach here")
+            case .unsuccessfulResponseError(let responseCode, let httpResponseBody):
+                returnedStatusCode = responseCode
+                returnedBody = httpResponseBody
+
+            default:
+                XCTFail("Control flow should never reach here")
             }
         } catch {
             XCTFail("Control flow should never reach here")
@@ -51,6 +54,7 @@ final class EndpointTests: XCTestCase {
         XCTAssertTrue(thrownError is EndpointError)
         XCTAssertNotNil(returnedStatusCode)
         XCTAssertEqual(returnedStatusCode!, 404)
+        XCTAssertNotNil(returnedBody)
     }
 
     func testGetPullRequests() async throws {
@@ -160,7 +164,7 @@ final class EndpointTests: XCTestCase {
                 expectation.fulfill()
             }
 
-            self.wait(for: [expectation], timeout: 240)
+            self.wait(for: [expectation], timeout: 120)
         }
 
 #if os(Linux)
