@@ -46,17 +46,7 @@ public struct EndpointSession {
             let _ = try await withThrowingTaskGroup(of: (data: Data, httpResponse: HTTPURLResponse).self) { taskGroup in
                 for url in urlsToFetch {
                     taskGroup.addTask {
-                        var retry = false
-                        repeat {
-                            do{
-                                return try await callEndpoint(url: url)
-                            } catch EndpointError.rateLimitError(let retryAfterSeconds) {
-                                retry = true
-                                try await Task.sleep(nanoseconds: UInt64(retryAfterSeconds * 1_000_000_000))
-                            } catch let error {
-                                throw error
-                            }
-                        } while retry
+                        return try await callEndpointWithRetry(url: url)
                     }
                 }
                 
@@ -97,10 +87,24 @@ public struct EndpointSession {
         
         return results
     }
-    
-    private func callEndpoint(url: URLRequest) async throws -> (data: Data, httpResponse: HTTPURLResponse) {
-        var result: (data: Data, response: URLResponse)? = nil
-        
+
+    private func callEndpointWithRetry(url: URLRequest) async throws -> (data: Data, httpResponse: HTTPURLResponse) {
+        var retry = false
+        repeat {
+            do {
+                return try await fetchResult(url: url)
+            } catch EndpointError.rateLimitError(let retryAfterSeconds) {
+                retry = true
+                try await Task.sleep(nanoseconds: UInt64(retryAfterSeconds * 1_000_000_000))
+            } catch let error {
+                throw error
+            }
+        } while retry
+    }
+
+    private func fetchResult(url: URLRequest) async throws -> (data: Data, httpResponse: HTTPURLResponse) {
+        var result: (data: Data, response: URLResponse)?
+
         do {
 #if os(Linux)
             result = try await withCheckedThrowingContinuation { continuation in
@@ -128,11 +132,18 @@ public struct EndpointSession {
         guard let httpResponse = result.response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
             let httpResponse = result.response as? HTTPURLResponse
             let statusCode = httpResponse?.statusCode ?? 418
-            
-            if statusCode == 403, let retryAfter = httpResponse?.value(forHTTPHeaderField: "Retry-After") {
+
+            if statusCode == 403, let retryAfter = httpResponse?.value(forHTTPHeaderField: GitHubConstants.retryAfterHeader) {
                 throw EndpointError.rateLimitError(retryAfterSeconds: Int(retryAfter) ?? 60)
             } else {
-                throw EndpointError.unsuccessfulResponseError(httpResponseStatusCode: statusCode)
+                if let contentType = httpResponse?.value(forHTTPHeaderField: GitHubConstants.contentTypeHeader), contentType.hasPrefix( "application/json") {
+                    let gitHubError: GitHubError = try JSONDecoder().decode(GitHubError.self, from: result.data)
+                    debugPrint(gitHubError)
+                }
+
+                let jsonString = String(decoding: result.data, as: UTF8.self)
+                let httpResponseBody: String? = jsonString.isEmpty ? nil : jsonString
+                throw EndpointError.unsuccessfulResponseError(httpResponseStatusCode: statusCode, httpResponseBody: httpResponseBody)
             }
         }
         
