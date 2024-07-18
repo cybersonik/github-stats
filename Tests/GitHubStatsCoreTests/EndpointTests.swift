@@ -8,7 +8,7 @@
 import XCTest
 @testable import GitHubStatsCore
 
-final class EndpointTests: XCTestCase {
+internal final class EndpointTests: XCTestCase {
     private let organization = "apple"
     private let repo = "swift.git"
     private let author = "DougGregor"
@@ -146,7 +146,7 @@ final class EndpointTests: XCTestCase {
 
         let testBlock = {
             print("Run testGetPullRequestsPerformance()")
-            
+
             // Arrange
             let expectation = self.expectation(description: "Get pull requests")
             let repo = Repo(organization: self.organization, name: self.repo)

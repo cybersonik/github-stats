@@ -9,6 +9,7 @@ import Foundation
 
 public struct GitHubError: GitHubObject {
     public var message: String
+    // swiftlint:disable:next identifier_name
     public var documentation_url: URL
     public var status: String
 }
