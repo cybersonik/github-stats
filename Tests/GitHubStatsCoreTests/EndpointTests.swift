@@ -6,20 +6,24 @@
 //
 
 import XCTest
+import Testing
+import Foundation
 @testable import GitHubStatsCore
 
-internal final class EndpointTests: XCTestCase {
+@Suite("EndpointTests tests")
+internal struct EndpointTests {
     private let organization = "apple"
     private let repo = "swift.git"
     private let author = "DougGregor"
 
-    override func setUpWithError() throws {
+    init() throws {
         let token = ProcessInfo.processInfo.environment[GitHubConstants.gitHubTokenEnvironmentVariable]
         guard token != nil else {
             throw XCTSkip("GitHub API token not found in environment variables")
         }
     }
 
+    @Test("Test getPullRequests with an invalid repo")
     func testInvalidRepoPullRequests() async throws {
         // Arrange
         let repo = Repo(organization: "foo", name: "bar")
@@ -32,7 +36,7 @@ internal final class EndpointTests: XCTestCase {
         do {
             let filter = PullRequestFilterFactory.makeDefaultRequestFilter()
             pullRequests = try await repo.getPullRequests(filter: filter)
-            XCTFail("Control flow should never reach here")
+            Issue.record("Control flow should never reach here")
         } catch let error as EndpointError {
             thrownError = error
 
@@ -42,21 +46,22 @@ internal final class EndpointTests: XCTestCase {
                 returnedBody = httpResponseBody
 
             default:
-                XCTFail("Control flow should never reach here")
+                Issue.record("Control flow should never reach here")
             }
         } catch {
-            XCTFail("Control flow should never reach here")
+            Issue.record("Control flow should never reach here")
         }
 
         // Assert
-        XCTAssertNil(pullRequests)
-        XCTAssertNotNil(thrownError)
-        XCTAssertTrue(thrownError is EndpointError)
-        XCTAssertNotNil(returnedStatusCode)
-        XCTAssertEqual(returnedStatusCode!, 404)
-        XCTAssertNotNil(returnedBody)
+        #expect(pullRequests == nil)
+        #expect(thrownError != nil)
+        #expect(thrownError is EndpointError)
+        #expect(returnedStatusCode != nil)
+        #expect(returnedStatusCode! == 404)
+        #expect(returnedBody != nil)
     }
 
+    @Test("Test getPullRequests with default filter")
     func testGetPullRequests() async throws {
         // Arrange
         let repo = Repo(organization: organization, name: repo)
@@ -66,10 +71,11 @@ internal final class EndpointTests: XCTestCase {
         let pullRequests = try await repo.getPullRequests(filter: filter)
 
         // Assert
-        XCTAssertNotNil(pullRequests)
+        #expect(pullRequests != nil)
         XCTAssertGreaterThan(pullRequests.count, 0)
     }
 
+    @Test("Test getPullRequests with maxResults filter")
     func testGetPullRequestsLimitedToMaxResults() async throws {
         // Arrange
         let repo = Repo(organization: organization, name: repo)
@@ -80,11 +86,12 @@ internal final class EndpointTests: XCTestCase {
         let pullRequests = try await repo.getPullRequests(filter: filter)
 
         // Assert
-        XCTAssertNotNil(pullRequests)
+        #expect(pullRequests != nil)
         XCTAssertGreaterThan(pullRequests.count, 0)
         XCTAssertLessThanOrEqual(pullRequests.count, 5)
     }
 
+    @Test("Test getPullRequests with maxResults and state filter")
     func testGetPullRequestsFilteredByClosed() async throws {
         // Arrange
         let repo = Repo(organization: organization, name: repo)
@@ -95,13 +102,14 @@ internal final class EndpointTests: XCTestCase {
         let pullRequests = try await repo.getPullRequests(filter: filter)
 
         // Assert
-        XCTAssertNotNil(pullRequests)
-        XCTAssertEqual(pullRequests.count, 10)
+        #expect(pullRequests != nil)
+        #expect(pullRequests.count == 10)
         for pullRequest in pullRequests {
-            XCTAssertEqual(pullRequest.state, .closed)
+            #expect(pullRequest.state == .closed)
         }
     }
 
+    @Test("Test getPullRequests with maxResults, state and author filter")
     func testGetPullRequestsFilteredByAuthor() async throws {
         // Arrange
         let repo = Repo(organization: organization, name: repo)
@@ -112,14 +120,15 @@ internal final class EndpointTests: XCTestCase {
         let pullRequests = try await repo.getPullRequests(filter: filter)
 
         // Assert
-        XCTAssertNotNil(pullRequests)
-        XCTAssertEqual(pullRequests.count, 10)
+        #expect(pullRequests != nil)
+        #expect(pullRequests.count == 10)
         for pullRequest in pullRequests {
-            XCTAssertEqual(pullRequest.state, .closed)
-            XCTAssertEqual(pullRequest.user.login, author)
+            #expect(pullRequest.state == .closed)
+            #expect(pullRequest.user.login == author)
         }
     }
 
+    @Test("Test getPullRequests with complex filter resulting in multiple pages")
     func testGetPullRequestsWithMultiplePagesAndComplexFilter() async throws {
         // Arrange
         let repo = Repo(organization: organization, name: repo)
@@ -130,13 +139,19 @@ internal final class EndpointTests: XCTestCase {
         let pullRequests = try await repo.getPullRequests(filter: filter)
 
         // Assert
-        XCTAssertNotNil(pullRequests)
-        XCTAssertEqual(pullRequests.count, 25)
+        #expect(pullRequests != nil)
+        #expect(pullRequests.count == 25)
         for pullRequest in pullRequests {
-            XCTAssertEqual(pullRequest.state, .closed)
-            XCTAssertEqual(pullRequest.user.login, author)
+            #expect(pullRequest.state == .closed)
+            #expect(pullRequest.user.login == author)
         }
     }
+}
+
+internal final class EndpointPerformanceTests: XCTestCase {
+    private let organization = "apple"
+    private let repo = "swift.git"
+    private let author = "DougGregor"
 
     func testGetPullRequestsPerformance() {
         EndpointEnvironment.urlSessionConfiguration = .ephemeral
