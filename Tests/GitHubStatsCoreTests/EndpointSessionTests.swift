@@ -8,7 +8,7 @@
 import XCTest
 @testable import GitHubStatsCore
 
-final class EndpointSessionTests: XCTestCase {
+internal final class EndpointSessionTests: XCTestCase {
     private let linkHeader = """
         <https://api.github.com/repositories/44838949/pulls?state=closed&page=2>; rel="next", \
         <https://api.github.com/repositories/44838949/pulls?state=closed&page=10>; rel="last"
@@ -17,16 +17,15 @@ final class EndpointSessionTests: XCTestCase {
     func testGetNextPagesUrl() async throws {
         // Arrange
         let nextPageUrl = URL(string: "https://api.github.com/repositories/44838949/pulls?state=closed&page=2")
-        
+
         // Act
-        let urls = EndpointSession.getNextPageUrl(from:linkHeader)
+        let urls = EndpointSession.getNextPageUrl(from: linkHeader)
 
         // Assert
         XCTAssertNotNil(urls)
         XCTAssertEqual(urls, nextPageUrl)
-        
     }
-    
+
     func testGetNextPagesUrls() async throws {
         // Arrange
         let nextPageUrls = [
@@ -39,10 +38,10 @@ final class EndpointSessionTests: XCTestCase {
                 URL(string: "https://api.github.com/repositories/44838949/pulls?state=closed&page=8"),
                 URL(string: "https://api.github.com/repositories/44838949/pulls?state=closed&page=9"),
                 URL(string: "https://api.github.com/repositories/44838949/pulls?state=closed&page=10")
-                ]
-        
+        ]
+
         // Act
-        let urls = EndpointSession.getNextPagesUrls(from:linkHeader)
+        let urls = EndpointSession.getNextPagesUrls(from: linkHeader)
 
         // Assert
         XCTAssertNotNil(urls)
@@ -52,4 +51,3 @@ final class EndpointSessionTests: XCTestCase {
         }
     }
 }
-
