@@ -7,12 +7,14 @@ let dependencies: [Package.Dependency]
 #if os(Linux)
 dependencies = [
         // Dependencies declare other packages that this package depends on.
-        .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.4.0")
+        .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.4.0"),
+        .package(url: "https://github.com/apple/swift-testing.git", branch: "main")
     ]
 #else
 dependencies = [
         // Dependencies declare other packages that this package depends on.
         .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.4.0"),
+        .package(url: "https://github.com/apple/swift-testing.git", branch: "main"),
         .package(url: "https://github.com/SimplyDanny/SwiftLintPlugins.git", from: "0.55.1")
     ]
 #endif
@@ -58,7 +60,10 @@ internal let package = Package(
         ),
         .testTarget(
             name: "GitHubStatsCoreTests",
-            dependencies: ["GitHubStatsCore"],
+            dependencies: [
+                "GitHubStatsCore",
+                .product(name: "Testing", package: "swift-testing"),
+            ],
             plugins: plugins
         )
     ]
