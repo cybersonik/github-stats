@@ -1,10 +1,11 @@
-import XCTest
+import Testing
+import Foundation
 @testable import GitHubStatsCore
 
-internal final class RepoTests: XCTestCase {
-    func testRepoInitWithSshUrl() throws {
-        throw XCTSkip("Skip until initialization issue resolved")
-
+@Suite("Repo tests")
+internal struct RepoTests {
+    @Test("Repo initialization with SSH URL", .disabled("Skip until initialization issue resolved"))
+    func repoInitWithSshUrl() {
         // Arrange
         let gitHubSshUrl = "git@github.com:apple/swift.git"
 
@@ -12,12 +13,11 @@ internal final class RepoTests: XCTestCase {
         let repo = Repo(repoUrl: gitHubSshUrl)
 
         // Assert
-        XCTAssertNotNil(repo)
+        #expect(repo != nil)
     }
 
-    func testRepoInitWithHttpUrl() throws {
-        throw XCTSkip("Skip until initialization issue resolved")
-
+    @Test("Repo initialization with HTTP URL", .disabled("Skip until initialization issue resolved"))
+    func repoInitWithHttpUrl() {
         // Arrange
         let gitHubHttpUrl = "https://github.com/apple/swift.git"
 
@@ -25,10 +25,11 @@ internal final class RepoTests: XCTestCase {
         let repo = Repo(repoUrl: gitHubHttpUrl)
 
         // Assert
-        XCTAssertNotNil(repo)
+        #expect(repo != nil)
     }
 
-    func testRepoInitWithUrl() throws {
+    @Test("Repo initialization with URL")
+    func repoInitWithUrl() throws {
         // Arrange
         let gitHubUrl = URL(string: "https://github.com/apple/swift.git")!
 
@@ -36,6 +37,6 @@ internal final class RepoTests: XCTestCase {
         let repo = Repo(url: gitHubUrl)
 
         // Assert
-        XCTAssertNotNil(repo)
+        #expect(repo != nil)
     }
 }
