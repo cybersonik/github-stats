@@ -4,7 +4,7 @@ import Foundation
 
 @Suite("Repo tests")
 internal struct RepoTests {
-    @Test("Repo initialization with SSH URL", .disabled("Skip until initialization issue resolved"))
+    @Test("Test Repo initialization with SSH URL", .disabled("Skip until initialization issue resolved"))
     func repoInitWithSshUrl() {
         // Arrange
         let gitHubSshUrl = "git@github.com:apple/swift.git"
@@ -16,7 +16,7 @@ internal struct RepoTests {
         #expect(repo != nil)
     }
 
-    @Test("Repo initialization with HTTP URL", .disabled("Skip until initialization issue resolved"))
+    @Test("Test Repo initialization with HTTP URL", .disabled("Skip until initialization issue resolved"))
     func repoInitWithHttpUrl() {
         // Arrange
         let gitHubHttpUrl = "https://github.com/apple/swift.git"
@@ -28,7 +28,7 @@ internal struct RepoTests {
         #expect(repo != nil)
     }
 
-    @Test("Repo initialization with URL")
+    @Test("Test Repo initialization with URL")
     func repoInitWithUrl() throws {
         // Arrange
         let gitHubUrl = URL(string: "https://github.com/apple/swift.git")!

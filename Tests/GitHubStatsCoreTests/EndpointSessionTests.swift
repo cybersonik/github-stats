@@ -5,16 +5,19 @@
 //  Created by Jesse Wesson on 2023-08-30.
 //
 
-import XCTest
+import Testing
+import Foundation
 @testable import GitHubStatsCore
 
-internal final class EndpointSessionTests: XCTestCase {
+@Suite("EndpointSession tests")
+internal struct EndpointSessionTests {
     private let linkHeader = """
         <https://api.github.com/repositories/44838949/pulls?state=closed&page=2>; rel="next", \
         <https://api.github.com/repositories/44838949/pulls?state=closed&page=10>; rel="last"
         """
 
-    func testGetNextPagesUrl() async throws {
+    @Test("Test getNextPagesUrl")
+    func getNextPagesUrl() {
         // Arrange
         let nextPageUrl = URL(string: "https://api.github.com/repositories/44838949/pulls?state=closed&page=2")
 
@@ -22,11 +25,12 @@ internal final class EndpointSessionTests: XCTestCase {
         let urls = EndpointSession.getNextPageUrl(from: linkHeader)
 
         // Assert
-        XCTAssertNotNil(urls)
-        XCTAssertEqual(urls, nextPageUrl)
+        #expect(urls != nil)
+        #expect(urls == nextPageUrl)
     }
 
-    func testGetNextPagesUrls() async throws {
+    @Test("Test getNextPagesUrls")
+    func testGetNextPagesUrls() {
         // Arrange
         let nextPageUrls = [
                 URL(string: "https://api.github.com/repositories/44838949/pulls?state=closed&page=2"),
@@ -44,10 +48,10 @@ internal final class EndpointSessionTests: XCTestCase {
         let urls = EndpointSession.getNextPagesUrls(from: linkHeader)
 
         // Assert
-        XCTAssertNotNil(urls)
+        #expect(urls != nil)
         if let urls {
-            XCTAssertEqual(urls.count, 9)
-            XCTAssertEqual(urls, nextPageUrls)
+            #expect(urls.count == 9)
+            #expect(urls == nextPageUrls)
         }
     }
 }
