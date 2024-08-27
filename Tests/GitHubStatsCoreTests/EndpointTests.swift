@@ -10,18 +10,11 @@ import Testing
 import Foundation
 @testable import GitHubStatsCore
 
-@Suite("EndpointTests tests")
+@Suite("EndpointTests tests", .disabled(if: ProcessInfo.processInfo.environment[GitHubConstants.gitHubTokenEnvironmentVariable] == nil, "GitHub API token not found in environment variables"))
 internal struct EndpointTests {
     private let organization = "apple"
     private let repo = "swift.git"
     private let author = "DougGregor"
-
-    init() throws {
-        let token = ProcessInfo.processInfo.environment[GitHubConstants.gitHubTokenEnvironmentVariable]
-        guard token != nil else {
-            throw XCTSkip("GitHub API token not found in environment variables")
-        }
-    }
 
     @Test("Test getPullRequests with an invalid repo")
     func testInvalidRepoPullRequests() async throws {
@@ -179,7 +172,7 @@ internal final class EndpointPerformanceTests: XCTestCase {
                 expectation.fulfill()
             }
 
-            self.wait(for: [expectation], timeout: 120)
+            self.wait(for: [expectation], timeout: 3 * 60)
         }
 
 #if os(Linux)
