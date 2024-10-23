@@ -13,37 +13,76 @@ on:
   pull_request:
     branches: [ "main" ]
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  build:
+  macos:
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [macos-15]
+
     name: Build and test on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [macos-13, ubuntu-latest]
-
     steps:
-    - uses: swift-actions/setup-swift@v1
-    - uses: actions/checkout@v3
-    - name: Get swift version
-      run: swift --version # Swift 5.9
+    - uses: actions/checkout@v4
+    - name: Xcode Select Version
+      uses: mobiledevops/xcode-select-version-action@v1
+      with:
+        xcode-select-version: 16
     - name: Get macOS version
       run: sw_vers
-      if: startsWith( matrix.os, 'macos' )
-    - name: Set TEST_GITHUB_TOKEN env variable
-      shell: bash
-      env:
-        TEST_GITHUB_TOKEN: ${{ secrets.TEST_GITHUB_TOKEN }}
-      run: |
-        echo "$TEST_GITHUB_TOKEN" > $HOME/.env
+    - name: Get xcodebuild version
+      run: xcodebuild -version 
+    - name: Get swift version
+      run: swift --version
     - name: Build
-      run: swift build
+      run: swift build --build-tests
     - name: Run tests
-      run: swift test --parallel --xunit-output=results.xml
+      run: swift test --skip testGetPullRequestsPerformance --parallel --xunit-output=results.xml
+      env:
+        TEST_GITHUB_TOKEN: ${{ secrets.TEST_GITHUB_TOKEN }}  
     - name: Report test results
-      uses: phoenix-actions/test-reporting@v8
+      uses: phoenix-actions/test-reporting@v15
       id: test-report
       if: success() || failure()    # run this step even if previous step failed
       with:
         name: Swift tests on ${{ matrix.os }}
-        path: results.xml
+        path: results-swift-testing.xml
         reporter: java-junit
+ 
+  ubuntu:
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+
+    name: Build and test on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    container:
+      image: swift:latest
+      env:
+        TEST_GITHUB_TOKEN: ${{ secrets.TEST_GITHUB_TOKEN }}
+    steps:
+    - uses: actions/checkout@v4
+    - name: Get Linux version
+      run: uname -a
+    - name: Get swift version
+      run: swift --version
+    - name: Build
+      run: swift build --build-tests
+    - name: Run tests
+      run: swift test --skip testGetPullRequestsPerformance --parallel --xunit-output=results.xml
+    - name: Workaround for test-reporting issue 1169
+      run: git config --system --add safe.directory /__w/github-stats/github-stats
+      if: success() || failure()    # run this step even if previous step failed
+    - name: Report test results
+      uses: phoenix-actions/test-reporting@v15
+      id: test-report
+      if: success() || failure()    # run this step even if previous step failed
+      with:
+        name: Swift tests on ${{ matrix.os }}
+        path: results-swift-testing.xml
+        reporter: java-junit
+
